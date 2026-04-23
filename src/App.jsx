@@ -421,6 +421,7 @@ function BlockEditor({ blocks, setBlocks }) {
       `}</style>
 
       {shareEntry&&<ShareSheet entry={shareEntry} onClose={()=>setShareEntry(null)}/>}
+      <DonatePopup/>
 
       <div style={{ background:"linear-gradient(135deg,#000080 0%,#0000cd 35%,#1084d0 65%,#000080 100%)", borderBottom:"3px solid #ffff00", padding:"12px 12px 10px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
@@ -633,6 +634,27 @@ function BlockEditor({ blocks, setBlocks }) {
         ))}
       </div>
 
+    </div>
+  );
+}function DonatePopup() {
+  const [show, setShow] = React.useState(()=>!sessionStorage.getItem("donate_seen"));
+  if (!show) return null;
+  const close = () => { sessionStorage.setItem("donate_seen","1"); setShow(false); };
+  return (
+    <div style={{ position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px" }} onClick={close}>
+      <div style={{ background:"#c0c0c0",border:"2px solid",borderColor:"#fff #808080 #808080 #fff",boxShadow:"2px 2px 0 #000",maxWidth:"340px",width:"100%" }} onClick={e=>e.stopPropagation()}>
+        <div style={{ background:"linear-gradient(to right,#00007f,#0000cd,#1084d0)",color:"#fff",padding:"6px 8px",fontFamily:"Arial,sans-serif",fontSize:"13px",fontWeight:"bold",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+          <span>☕ Support The Public Journal</span>
+          <span onClick={close} style={{ cursor:"pointer",fontSize:"16px",padding:"0 4px" }}>✕</span>
+        </div>
+        <div style={{ padding:"16px" }}>
+          <p style={{ fontFamily:"Times New Roman,serif",fontSize:"15px",lineHeight:1.8,color:"#000",margin:"0 0 16px" }}>The Public Journal is free, ad-free, and always will be. If you've read something here that stayed with you, or left a story of your own, a coffee keeps the lights on. Thank you.</p>
+          <a href="https://buymeacoffee.com/theonlinejournal" target="_blank" rel="noreferrer" style={{ display:"block",textDecoration:"none" }}>
+            <button style={{ background:"#FFDD00",border:"2px solid",borderColor:"#cca800 #665400 #665400 #cca800",padding:"10px 18px",fontFamily:"Arial,sans-serif",fontSize:"15px",cursor:"pointer",color:"#000",width:"100%",minHeight:"48px" }}>☕ Buy me a coffee</button>
+          </a>
+          <button style={{ background:"#c0c0c0",border:"2px solid",borderColor:"#fff #808080 #808080 #fff",padding:"10px 18px",fontFamily:"Arial,sans-serif",fontSize:"14px",cursor:"pointer",color:"#000",width:"100%",minHeight:"44px",marginTop:"8px" }} onClick={close}>Maybe later</button>
+        </div>
+      </div>
     </div>
   );
 }
