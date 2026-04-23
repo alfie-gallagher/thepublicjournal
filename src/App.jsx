@@ -397,8 +397,8 @@ function Card({ s, idx, onShare, onTagClick, onReply }) {
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();loadComments();}}>💬 {showComments?"Hide":"Comments"}</button>
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();onReply(s);}}>↩ Reply</button>
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();onShare(s);}}>📤 Share</button>
-        <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();const img=generateStoryCard(s);window.open(img,'_blank');}}>📸 Story</button>
-        <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();const img=generateSquareCard(s);window.open(img,'_blank');}}>🖼️ Post</button>
+        <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={async e=>{e.stopPropagation();const img=generateStoryCard(s);const b=await fetch(img).then(r=>r.blob());const u=URL.createObjectURL(b);window.open(u,'_blank');}}>📸 Story</button>
+        <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={async e=>{e.stopPropagation();const img=generateSquareCard(s);const b=await fetch(img).then(r=>r.blob());const u=URL.createObjectURL(b);window.open(u,'_blank');}}>🖼️ Post</button>
         {hasMore&&(<button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}>{open?"▲ Less":"▼ More"}</button>)}
         {(s.tags||[]).length>0&&(
           <div style={{ display:"flex", gap:"4px", flexWrap:"wrap", marginTop:"2px", width:"100%" }}>
