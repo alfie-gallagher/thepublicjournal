@@ -417,7 +417,7 @@ function BlockEditor({ blocks, setBlocks }) {
         ::-webkit-scrollbar-thumb{background:#808080;}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         .fadein{animation:fadeIn 0.25s ease;}
-        button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+        button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}p{color:#000;}p{color:#000;}
       `}</style>
 
       {shareEntry&&<ShareSheet entry={shareEntry} onClose={()=>setShareEntry(null)}/>}
