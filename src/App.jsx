@@ -127,7 +127,39 @@ function ShareSheet({ entry, onClose }) {
       </div>
     </div>
   );
-}function Card({ s, idx, onShare, onTagClick, onReply }) {
+}
+function generateStoryCard(entry) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080; canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#c0c0c0"; ctx.fillRect(0,0,1080,1920);
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(60,60,960,1800);
+  ctx.fillStyle = "#c0c0c0"; ctx.fillRect(66,66,948,1788);
+  ctx.strokeStyle="#ffffff"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(60,60); ctx.lineTo(1020,60); ctx.lineTo(1020,1860); ctx.stroke();
+  ctx.strokeStyle="#808080"; ctx.beginPath(); ctx.moveTo(1020,60); ctx.lineTo(60,60); ctx.lineTo(60,1860); ctx.stroke();
+  const grad=ctx.createLinearGradient(66,66,1014,66); grad.addColorStop(0,"#00007f"); grad.addColorStop(0.5,"#0000cd"); grad.addColorStop(1,"#1084d0");
+  ctx.fillStyle=grad; ctx.fillRect(66,66,948,96);
+  ctx.fillStyle="#ffffff"; ctx.font="bold 40px Arial"; ctx.fillText("The Public Journal",90,128);
+  const rb=["#f00","#f80","#ff0","#0c0","#00f","#80c","#f00"]; const rw=948/rb.length;
+  rb.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(66+i*rw,162,rw+2,14);});
+  const text=entry.blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n\n");
+  ctx.fillStyle="#000"; ctx.font="46px Times New Roman,serif";
+  let y=260; const lh=76; const mw=880;
+  for(const para of text.split("\n\n")){
+    const words=para.split(" "); let line="";
+    for(let w of words){const t=line+w+" "; if(ctx.measureText(t).width>mw&&line){ctx.fillText(line.trim(),100,y);line=w+" ";y+=lh;if(y>1680){ctx.fillText("...",100,y);break;}}else{line=t;}}
+    if(y<=1680&&line.trim()){ctx.fillText(line.trim(),100,y);y+=lh*1.5;} if(y>1680)break;
+  }
+  rb.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(66+i*rw,1750,rw+2,14);});
+  ctx.fillStyle="#000080"; ctx.fillRect(66,1764,948,90);
+  ctx.fillStyle="#fff"; ctx.font="bold 34px Arial"; ctx.textAlign="center";
+  ctx.fillText("THEPUBLICJOURNAL.ONLINE",540,1820);
+  ctx.fillStyle="#aad4ff"; ctx.font="26px Arial";
+  ctx.fillText("Leave your story at thepublicjournal.online",540,1850);
+  ctx.textAlign="left";
+  return canvas.toDataURL("image/png");
+}
+function Card({ s, idx, onShare, onTagClick, onReply }) {
   const [open, setOpen] = useState(false);
   const [liked, setLiked] = useState(()=>localStorage.getItem("liked_"+s.id)==="1");
   const [likes, setLikes] = useState(s.likes || 0);
@@ -249,6 +281,7 @@ function ShareSheet({ entry, onClose }) {
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();loadComments();}}>💬 {showComments?"Hide":"Comments"}</button>
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();onReply(s);}}>↩ Reply</button>
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();onShare(s);}}>📤 Share</button>
+        <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();const img=generateStoryCard(s);const a=document.createElement('a');a.href=img;a.download='tpj-story.png';a.click();}}>📸 Story</button>
         {hasMore&&(<button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}>{open?"▲ Less":"▼ More"}</button>)}
         {(s.tags||[]).length>0&&(
           <div style={{ display:"flex", gap:"4px", flexWrap:"wrap", marginTop:"2px", width:"100%" }}>
