@@ -1,36 +1,51 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
 
-const THEMES = [
-  "fear and love","the last time","something you never said",
-  "a door you closed","what home meant","the person you were becoming",
-  "a kindness you never forgot","what the city taught you",
-  "the version of you nobody knew","distance",
-  "the best day","a risk that paid off","something you're proud of",
-  "a stranger who changed things","where you were at midnight",
-  "the job you'll never forget","a place you miss","what you learned too late",
-  "the conversation that changed everything","something that still makes you laugh",
-  "a decision you'd make again","a year that surprised you",
-  "what you'd tell your younger self","the meal you still think about",
-  "a friendship that faded","something you built","a moment of pure luck",
-  "what nobody knew you were going through","the thing you're most grateful for",
-  "a lesson from someone unexpected","what you found when you weren't looking",
-  "the summer of","a second chance","what home sounds like",
-  "the trip that changed you","a promise you kept"
-];
+/* ── categorised themes ─────────────────────────────────────── */
+const THEME_CATEGORIES = {
+  "Serious & Reflective": [
+    "fear and love","the last time","something you never said",
+    "a door you closed","what home meant","the person you were becoming",
+    "a kindness you never forgot","what the city taught you",
+    "the version of you nobody knew","distance",
+    "what you learned too late","the conversation that changed everything",
+    "what nobody knew you were going through","a lesson from someone unexpected",
+    "what you found when you weren't looking","a second chance",
+    "a promise you kept","a friendship that faded"
+  ],
+  "Funny & Light": [
+    "the most embarrassing thing that turned out fine",
+    "a plan that went completely wrong but worked out",
+    "something you believed as a kid that was totally wrong",
+    "the worst job you ever had","a holiday disaster",
+    "the time you were completely out of your depth",
+    "something that still makes you laugh years later",
+    "a decision you'd make again just to see the chaos",
+    "the meal you still think about (for the wrong reasons)",
+    "the best accidental thing that ever happened to you"
+  ],
+  "Milestones": [
+    "the best day","a risk that paid off","something you're proud of",
+    "a year that surprised you","what you'd tell your younger self",
+    "something you built","a moment of pure luck",
+    "the trip that changed you","a turning point you didn't see coming",
+    "the summer of","where you were at midnight on new year's",
+    "the job you'll never forget","a place you miss"
+  ],
+  "People": [
+    "a stranger who changed things","who taught you something without knowing it",
+    "someone who believed in you before you did",
+    "the friend you think about but lost touch with",
+    "a conversation you'll never forget",
+    "someone who showed you what kindness looks like",
+    "the person who shaped how you see the world"
+  ]
+};
+
+const ALL_THEMES = Object.values(THEME_CATEGORIES).flat();
+const CATEGORY_NAMES = Object.keys(THEME_CATEGORIES);
 
 const GLYPHS = ["★","☆","✦","♥","♡","◆","◇","✿","~","—","•","∞"];
-
-const PROMPTS = [
-  "what do you keep coming back to?",
-  "what year changed you the most?",
-  "who taught you something without knowing it?",
-  "what do you wish you'd said?",
-  "where were you when you finally felt like yourself?",
-  "what have you forgiven yourself for?",
-  "what would the ten-years-ago you need to hear?",
-  "what did you lose that you never looked for?"
-];
 
 const SEEDS = [
   {
@@ -88,8 +103,9 @@ const W = {
   tbar:  { background:"linear-gradient(to right,#00007f,#0000cd,#1084d0)", color:"#fff", padding:"6px 8px", fontFamily:"Arial,sans-serif", fontSize:"13px", fontWeight:"bold", display:"flex", alignItems:"center", justifyContent:"space-between", userSelect:"none" },
   btn:   { background:"#c0c0c0", border:"2px solid", borderColor:"#ffffff #808080 #808080 #ffffff", padding:"10px 18px", fontFamily:"Arial,sans-serif", fontSize:"14px", cursor:"pointer", color:"#000", minWidth:"80px", WebkitTapHighlightColor:"transparent" },
   btnSm: { background:"#c0c0c0", border:"2px solid", borderColor:"#ffffff #808080 #808080 #ffffff", padding:"6px 12px", fontFamily:"Arial,sans-serif", fontSize:"13px", cursor:"pointer", color:"#000", WebkitTapHighlightColor:"transparent" },
-  inp:   { background:"#fff", border:"2px solid", borderColor:"#808080 #fff #fff #808080", padding:"10px", fontFamily:"Times New Roman,serif", fontSize:"16px", width:"100%", boxSizing:"border-box", WebkitAppearance:"none", borderRadius:"0" },
-  ta:    { background:"#fff", border:"2px solid", borderColor:"#808080 #fff #fff #808080", padding:"10px", fontFamily:"Times New Roman,serif", fontSize:"16px", width:"100%", boxSizing:"border-box", resize:"vertical", lineHeight:1.7, WebkitAppearance:"none", borderRadius:"0" },
+  inp:   { background:"#fff", border:"2px solid", borderColor:"#808080 #fff #fff #808080", padding:"10px", fontFamily:"Times New Roman,serif", fontSize:"16px", width:"100%", boxSizing:"border-box", WebkitAppearance:"none", borderRadius:"0", color:"#000" },
+  ta:    { background:"#fff", border:"2px solid", borderColor:"#808080 #fff #fff #808080", padding:"10px", fontFamily:"Times New Roman,serif", fontSize:"16px", width:"100%", boxSizing:"border-box", resize:"vertical", lineHeight:1.7, WebkitAppearance:"none", borderRadius:"0", color:"#000" },
+  sel:   { background:"#fff", border:"2px solid", borderColor:"#808080 #fff #fff #808080", padding:"8px 10px", fontFamily:"Arial,sans-serif", fontSize:"14px", width:"100%", boxSizing:"border-box", WebkitAppearance:"none", borderRadius:"0", color:"#000" },
   inset: { background:"#c0c0c0", border:"2px solid", borderColor:"#808080 #fff #fff #808080", padding:"8px 10px" },
 };
 
@@ -302,65 +318,65 @@ export default function App() {
   const [activeTag, setActiveTag] = useState(null);
   const [shareEntry, setShareEntry] = useState(null);
   const [visitorCount, setVisitorCount] = useState(null);
-  const [currentTheme, setCurrentTheme] = useState(()=>THEMES[Math.floor(Math.random()*THEMES.length)]);
+  const [themeCategory, setThemeCategory] = useState("Serious & Reflective");
+  const [currentTheme, setCurrentTheme] = useState(()=>THEME_CATEGORIES["Serious & Reflective"][0]);
   const [gbName, setGbName]     = useState("");
   const [gbMsg, setGbMsg]       = useState("");
   const [gbEntries, setGbEntries] = useState([]);
   const [gbPosted, setGbPosted] = useState(false);
-  const todayPrompt = PROMPTS[new Date().getDay()%PROMPTS.length];
 
-  const refreshTheme=()=>{
-    setCurrentTheme(prev=>{
+  const refreshTheme = (cat) => {
+    const category = cat || themeCategory;
+    const pool = THEME_CATEGORIES[category];
+    setCurrentTheme(prev => {
       let next;
-      do{next=THEMES[Math.floor(Math.random()*THEMES.length)];}while(next===prev&&THEMES.length>1);
+      do { next = pool[Math.floor(Math.random()*pool.length)]; } while (next===prev && pool.length>1);
       return next;
     });
   };
 
-  // Load entries from Supabase
+  const handleCategoryChange = (cat) => {
+    setThemeCategory(cat);
+    const pool = THEME_CATEGORIES[cat];
+    setCurrentTheme(pool[Math.floor(Math.random()*pool.length)]);
+  };
+
+  const useTheme = () => {
+    // Put the prompt as the first line of the first text block
+    const prompt = `"${currentTheme}"\n\n`;
+    setBlocks(bs => bs.map((b,i) => i===0 && b.type==="text" ? {...b, value: prompt} : b));
+  };
+
   useEffect(()=>{
     (async()=>{
       setLoading(true);
-      const { data, error } = await supabase
-        .from("entries")
-        .select("*")
-        .order("ts", { ascending: false });
-      if (error || !data || data.length === 0) {
-        // Seed the database with initial entries if empty
-        if (!error && data && data.length === 0) {
+      const { data, error } = await supabase.from("entries").select("*").order("ts", { ascending:false });
+      if (error || !data || data.length===0) {
+        if (!error && data && data.length===0) {
           await supabase.from("entries").insert(
-            SEEDS.map(s => ({ id:s.id, handle:s.handle, anon:s.anon, ts:s.ts, tags:s.tags, blocks:s.blocks, likes:0 }))
+            SEEDS.map(s=>({ id:s.id, handle:s.handle, anon:s.anon, ts:s.ts, tags:s.tags, blocks:s.blocks, likes:0 }))
           );
           setEntries(SEEDS);
-        } else {
-          setEntries(SEEDS);
-        }
-      } else {
-        setEntries(data);
-      }
+        } else { setEntries(SEEDS); }
+      } else { setEntries(data); }
       setLoading(false);
     })();
   },[]);
 
-  // Load guestbook
   useEffect(()=>{
     (async()=>{
-      const { data } = await supabase.from("guestbook").select("*").order("ts", { ascending:false });
-      if (data && data.length > 0) {
-        setGbEntries(data);
-      } else {
-        setGbEntries([{ name:"webmaster_99", msg:"Thank you for visiting. This site is a labour of love. Sign and tell your friends. — est. 1999", ts:"1999-01-01T00:00:00" }]);
-      }
+      const { data } = await supabase.from("guestbook").select("*").order("ts",{ascending:false});
+      if (data && data.length>0) { setGbEntries(data); }
+      else { setGbEntries([{name:"webmaster_99",msg:"Thank you for visiting. Sign and tell your friends.",ts:"1999-01-01T00:00:00"}]); }
     })();
   },[]);
 
-  // Visitor counter
   useEffect(()=>{
     (async()=>{
       const { data } = await supabase.from("visitors").select("count").eq("id",1).single();
       const current = data?.count || 38;
-      const next = current + 1;
-      await supabase.from("visitors").update({ count: next }).eq("id",1);
+      const next = current+1;
+      await supabase.from("visitors").update({count:next}).eq("id",1);
       setVisitorCount(next);
     })();
   },[]);
@@ -369,19 +385,14 @@ export default function App() {
     const ok = blocks.some(b=>b.type==="image"||(b.type==="text"&&b.value.trim()));
     if (!ok) return;
     const entry = {
-      id: uid(),
-      handle: anon ? "" : (handle.trim() || ""),
-      anon,
-      ts: new Date().toISOString(),
-      tags: parseTags(tagInput),
-      blocks: blocks.filter(b=>b.type==="image"||(b.type==="text"&&b.value.trim())),
-      likes: 0
+      id:uid(), handle:anon?"":(handle.trim()||""), anon,
+      ts:new Date().toISOString(), tags:parseTags(tagInput),
+      blocks:blocks.filter(b=>b.type==="image"||(b.type==="text"&&b.value.trim())), likes:0
     };
     const { error } = await supabase.from("entries").insert([entry]);
     if (!error) {
-      setEntries(prev => [entry, ...prev]);
-      setBlocks([{type:"text",value:""}]);
-      setTagInput("");
+      setEntries(prev=>[entry,...prev]);
+      setBlocks([{type:"text",value:""}]); setTagInput("");
       setPosted(true);
       setTimeout(()=>{ setPosted(false); setTab("feed"); }, 2200);
     }
@@ -389,12 +400,12 @@ export default function App() {
 
   const signGuestbook = async () => {
     if (!gbMsg.trim()) return;
-    const entry = { name: gbName.trim()||"Anonymous", msg: gbMsg.trim(), ts: new Date().toISOString() };
+    const entry = {name:gbName.trim()||"Anonymous",msg:gbMsg.trim(),ts:new Date().toISOString()};
     const { error } = await supabase.from("guestbook").insert([entry]);
     if (!error) {
-      setGbEntries(prev => [entry, ...prev]);
+      setGbEntries(prev=>[entry,...prev]);
       setGbName(""); setGbMsg(""); setGbPosted(true);
-      setTimeout(()=>setGbPosted(false), 3000);
+      setTimeout(()=>setGbPosted(false),3000);
     }
   };
 
@@ -410,7 +421,7 @@ export default function App() {
       if (searchQ && !JSON.stringify(e).toLowerCase().includes(searchQ.toLowerCase())) return false;
       return true;
     })
-    .sort((a,b)=>sort==="newest" ? new Date(b.ts)-new Date(a.ts) : new Date(a.ts)-new Date(b.ts));
+    .sort((a,b)=>sort==="newest"?new Date(b.ts)-new Date(a.ts):new Date(a.ts)-new Date(b.ts));
 
   const hasContent = blocks.some(b=>b.type==="image"||(b.type==="text"&&b.value.trim()));
 
@@ -427,15 +438,13 @@ export default function App() {
       <style>{`
         *{box-sizing:border-box;}
         body{margin:0;background:#c0c0c0;-webkit-text-size-adjust:100%;}
-        input,textarea,select{font-size:16px!important;}
+        input,textarea,select{font-size:16px!important;color:#000!important;}
         ::placeholder{color:#999;font-style:italic;}
-        textarea:focus,input:focus{outline:1px dotted #000080;}
+        textarea:focus,input:focus,select:focus{outline:1px dotted #000080;}
         ::-webkit-scrollbar{width:8px;background:#c0c0c0;}
         ::-webkit-scrollbar-thumb{background:#808080;}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         .fadein{animation:fadeIn 0.25s ease;}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        .blink{animation:blink 1s step-end infinite;}
         button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
       `}</style>
 
@@ -456,14 +465,6 @@ export default function App() {
             <div style={{ fontFamily:"Arial,sans-serif", fontSize:"10px", color:"#aad4ff", marginTop:"4px" }}>{entries.length} entries</div>
           </div>
         </div>
-      </div>
-
-      {/* TICKER */}
-      <div style={{ background:"#000080", color:"#ffff00", padding:"3px 0", overflow:"hidden", whiteSpace:"nowrap", borderBottom:"2px solid #ffff00" }}>
-        <style>{`@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
-        <span style={{ display:"inline-block", animation:"mq 28s linear infinite", fontFamily:"Arial,sans-serif", fontSize:"12px", fontWeight:"bold", letterSpacing:"1px" }}>
-          {`:: THE PUBLIC JOURNAL :: ${entries.length} ENTRIES :: YOUR LIFE IS WORTH READING :: ANONYMOUS OR NAMED :: `.repeat(5)}
-        </span>
       </div>
 
       {/* CONTENT */}
@@ -492,23 +493,23 @@ export default function App() {
               )}
             </div>
             <Win title="Welcome" icon="🏠">
-              <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:"0 0 6px", lineHeight:1.75 }}>
+              <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:"0 0 6px", lineHeight:1.75, color:"#000" }}>
                 <strong>The Public Journal</strong> — leave a piece of your life on the internet. Anonymous or named. A sentence or a thousand words.
               </p>
               <button style={{ ...W.btn, width:"100%" }} onClick={()=>setTab("submit")}>✏️ Add Your Entry</button>
             </Win>
             <RainbowHR/>
-            {loading ? (
+            {loading?(
               <Win title="Loading..." icon="⏳">
-                <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:0, fontStyle:"italic", color:"#555" }}>Fetching entries from the database...</p>
+                <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:0, fontStyle:"italic", color:"#555" }}>Fetching entries...</p>
               </Win>
-            ) : feed.length===0 ? (
+            ):feed.length===0?(
               <Win title="No Results" icon="🔍">
-                <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:0 }}>
+                <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:0, color:"#000" }}>
                   Nothing found. <button style={W.btnSm} onClick={()=>{setSearchQ("");setActiveTag(null);}}>Clear filters</button>
                 </p>
               </Win>
-            ) : (
+            ):(
               feed.map((e,i)=><Card key={e.id} s={e} idx={i} onShare={setShareEntry} onTagClick={filterTag}/>)
             )}
           </div>
@@ -521,7 +522,7 @@ export default function App() {
               <Win title="Entry Posted!" icon="✅">
                 <div style={{ padding:"12px", textAlign:"center" }}>
                   <div style={{ fontSize:"40px", marginBottom:"10px" }}>✅</div>
-                  <p style={{ fontFamily:"Times New Roman,serif", fontSize:"16px", margin:"0 0 8px" }}>Your entry has been added.</p>
+                  <p style={{ fontFamily:"Times New Roman,serif", fontSize:"16px", margin:"0 0 8px", color:"#000" }}>Your entry has been added.</p>
                   <p style={{ fontFamily:"Times New Roman,serif", fontSize:"13px", fontStyle:"italic", color:"#555", margin:0, lineHeight:1.7 }}>
                     It takes courage to look at your own life and write it down. We're glad you did.
                   </p>
@@ -529,27 +530,40 @@ export default function App() {
               </Win>
             ):(
               <>
+                {/* THEME FINDER */}
                 <Win title="🎲 Theme Finder" icon="🎲">
-                  <div style={{ fontFamily:"Arial,sans-serif", fontSize:"12px", color:"#555", marginBottom:"8px" }}>Not sure what to write? Keep rolling until one clicks.</div>
+                  <div style={{ fontFamily:"Arial,sans-serif", fontSize:"12px", color:"#555", marginBottom:"8px" }}>
+                    Not sure what to write? Pick a mood, keep rolling until one clicks.
+                  </div>
+
+                  {/* category dropdown */}
+                  <div style={{ marginBottom:"8px" }}>
+                    <label style={{ fontFamily:"Arial,sans-serif", fontSize:"12px", color:"#333", display:"block", marginBottom:"4px" }}>Mood:</label>
+                    <select value={themeCategory} onChange={e=>handleCategoryChange(e.target.value)} style={W.sel}>
+                      {CATEGORY_NAMES.map(c=>(
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* current theme */}
                   <div style={{ ...W.inset, fontFamily:"Times New Roman,serif", fontSize:"15px", fontStyle:"italic", color:"#000080", lineHeight:1.7, textAlign:"center", padding:"12px", marginBottom:"8px" }}>
                     &ldquo;{currentTheme}&rdquo;
                   </div>
+
                   <div style={{ display:"flex", gap:"6px" }}>
-                    <button style={{ ...W.btnSm, flex:1, textAlign:"center", minHeight:"44px", fontSize:"14px" }} onClick={refreshTheme}>🎲 New theme</button>
-                    <button style={{ ...W.btn, flex:1, minHeight:"44px", fontSize:"14px", minWidth:"unset" }} onClick={()=>setTab("submit")}>✏️ Write this</button>
+                    <button style={{ ...W.btnSm, flex:1, textAlign:"center", minHeight:"44px", fontSize:"14px" }} onClick={()=>refreshTheme()}>🎲 New theme</button>
+                    <button style={{ ...W.btn, flex:1, minHeight:"44px", fontSize:"14px", minWidth:"unset" }} onClick={useTheme}>✏️ Write this</button>
                   </div>
                 </Win>
-                <Win title="💭 Reflect" icon="💭">
-                  <div style={{ ...W.inset, fontFamily:"Times New Roman,serif", fontSize:"14px", fontStyle:"italic", color:"#333", lineHeight:1.7 }}>
-                    &ldquo;{todayPrompt}&rdquo;
-                  </div>
-                </Win>
+
+                {/* WRITE FORM */}
                 <Win title="Your Entry" icon="✏️">
                   <div style={{ marginBottom:"12px" }}>
                     <div style={{ fontFamily:"Arial,sans-serif", fontSize:"13px", fontWeight:"bold", marginBottom:"8px" }}>Post as:</div>
                     <div style={{ display:"flex", gap:"12px", marginBottom:"8px" }}>
                       {[["Anonymous",true],["Use a name",false]].map(([l,v])=>(
-                        <label key={l} style={{ display:"flex", alignItems:"center", gap:"6px", fontFamily:"Arial,sans-serif", fontSize:"14px", cursor:"pointer", minHeight:"44px" }}>
+                        <label key={l} style={{ display:"flex", alignItems:"center", gap:"6px", fontFamily:"Arial,sans-serif", fontSize:"14px", cursor:"pointer", minHeight:"44px", color:"#000" }}>
                           <input type="radio" checked={anon===v} onChange={()=>setAnon(v)} style={{ width:"18px", height:"18px", accentColor:"#000080" }}/>
                           {l}
                         </label>
@@ -561,10 +575,10 @@ export default function App() {
                     )}
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #808080", margin:"10px 0" }}/>
-                  <div style={{ fontFamily:"Arial,sans-serif", fontSize:"13px", fontWeight:"bold", marginBottom:"6px" }}>Your story:</div>
+                  <div style={{ fontFamily:"Arial,sans-serif", fontSize:"13px", fontWeight:"bold", marginBottom:"6px", color:"#000" }}>Your story:</div>
                   <BlockEditor blocks={blocks} setBlocks={setBlocks}/>
                   <hr style={{ border:"none", borderTop:"1px solid #808080", margin:"10px 0" }}/>
-                  <div style={{ fontFamily:"Arial,sans-serif", fontSize:"13px", fontWeight:"bold", marginBottom:"4px" }}>
+                  <div style={{ fontFamily:"Arial,sans-serif", fontSize:"13px", fontWeight:"bold", marginBottom:"4px", color:"#000" }}>
                     Hashtags <span style={{ fontWeight:"normal", color:"#555", fontSize:"12px" }}>(comma separated)</span>
                   </div>
                   <input type="text" value={tagInput} onChange={e=>setTagInput(e.target.value)}
@@ -593,12 +607,12 @@ export default function App() {
         {tab==="hashtags"&&(
           <div className="fadein">
             <Win title="# Hashtag Directory" icon="#">
-              <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:"0 0 10px", lineHeight:1.75 }}>
+              <p style={{ fontFamily:"Times New Roman,serif", fontSize:"14px", margin:"0 0 10px", lineHeight:1.75, color:"#000" }}>
                 Tap any hashtag to filter the feed to entries with that tag.
               </p>
               <RainbowHR/>
               {allTags.length===0?(
-                <p style={{ fontFamily:"Times New Roman,serif", fontSize:"13px", fontStyle:"italic", color:"#555" }}>No tags yet — add some when you submit an entry.</p>
+                <p style={{ fontFamily:"Times New Roman,serif", fontSize:"13px", fontStyle:"italic", color:"#555" }}>No tags yet.</p>
               ):(
                 <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", padding:"8px 0" }}>
                   {allTags.map(([tag,count])=>(
@@ -628,7 +642,7 @@ export default function App() {
                     {allTags.map(([tag,count])=>(
                       <tr key={tag} style={{ borderBottom:"1px dotted #aaa", cursor:"pointer" }} onClick={()=>filterTag(tag)}>
                         <td style={{ padding:"6px 8px 6px 0", fontFamily:"Courier New,monospace", color:"#000080" }}>#{tag}</td>
-                        <td style={{ padding:"6px 0", textAlign:"right", fontWeight:"bold" }}>{count}</td>
+                        <td style={{ padding:"6px 0", textAlign:"right", fontWeight:"bold", color:"#000" }}>{count}</td>
                         <td style={{ padding:"6px 0 6px 8px", textAlign:"right", color:"#555" }}>{Math.round(count/entries.length*100)}%</td>
                       </tr>
                     ))}
@@ -658,10 +672,10 @@ export default function App() {
             <Win title="About" icon="📜">
               <table style={{ borderCollapse:"collapse", width:"100%", fontFamily:"Times New Roman,serif", fontSize:"14px" }}>
                 <tbody>
-                  {[["Established","1999"],["Location","The World Wide Web"],["Purpose","To hold pieces of real lives"],["Algorithm","No such thing here."],["Your data","Yours. Always."],["Anonymity","Supported and respected."]].map(([k,v])=>(
+                  {[["Purpose","To hold pieces of real lives"],["Algorithm","No such thing here."],["Your data","Yours. Always."],["Anonymity","Supported and respected."]].map(([k,v])=>(
                     <tr key={k} style={{ borderBottom:"1px dotted #ccc" }}>
                       <td style={{ padding:"6px 12px 6px 0", fontWeight:"bold", fontFamily:"Arial,sans-serif", fontSize:"12px", color:"#000080", whiteSpace:"nowrap" }}>{k}:</td>
-                      <td style={{ padding:"6px 0" }}>{v}</td>
+                      <td style={{ padding:"6px 0", color:"#000" }}>{v}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -674,7 +688,7 @@ export default function App() {
         {tab==="guestbook"&&(
           <div className="fadein">
             <Win title="Guestbook" icon="📒">
-              <p style={{ fontFamily:"Times New Roman,serif", fontSize:"15px", margin:"0 0 10px", lineHeight:1.75 }}>
+              <p style={{ fontFamily:"Times New Roman,serif", fontSize:"15px", margin:"0 0 10px", lineHeight:1.75, color:"#000" }}>
                 Sign below and let us know you were here.
               </p>
               <RainbowHR/>
@@ -714,9 +728,9 @@ export default function App() {
 
         {/* FOOTER */}
         <div style={{ borderTop:"3px solid #ffff00", background:"#000080", color:"#fff", padding:"12px", marginTop:"4px", textAlign:"center" }}>
-          <div style={{ fontWeight:"bold", fontSize:"13px", letterSpacing:"2px", marginBottom:"4px" }}>THEPUBLICJOURNAL.NET</div>
+          <div style={{ fontWeight:"bold", fontSize:"13px", letterSpacing:"2px", marginBottom:"4px" }}>THEPUBLICJOURNAL.ONLINE</div>
           <div style={{ color:"#aad4ff", fontSize:"11px" }}>ANONYMOUS IS VALID &bull; NAMED IS BRAVE &bull; BOTH ARE WELCOME</div>
-          <div style={{ color:"#7aafdd", fontSize:"10px", marginTop:"4px" }}>&copy; 1999&ndash;{new Date().getFullYear()} The Public Journal</div>
+          <div style={{ color:"#7aafdd", fontSize:"10px", marginTop:"4px" }}>&copy; {new Date().getFullYear()} The Public Journal</div>
         </div>
 
       </div>
@@ -726,8 +740,8 @@ export default function App() {
         {NAV.map(n=>(
           <button key={n.id} onClick={()=>setTab(n.id)} style={{
             flex:1, border:"none", borderRight:"1px solid #808080",
-            borderTop: tab===n.id ? "3px solid #000080" : "3px solid transparent",
-            background: tab===n.id ? "#fff" : "#c0c0c0",
+            borderTop:tab===n.id?"3px solid #000080":"3px solid transparent",
+            background:tab===n.id?"#fff":"#c0c0c0",
             padding:"8px 2px 6px", cursor:"pointer", minHeight:"56px",
             display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
             gap:"2px", WebkitTapHighlightColor:"transparent"
