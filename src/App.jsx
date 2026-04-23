@@ -128,6 +128,79 @@ function ShareSheet({ entry, onClose }) {
     </div>
   );
 }
+
+function generateSquareCard(entry) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080; canvas.height = 1080;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#c0c0c0"; ctx.fillRect(0,0,1080,1080);
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(30,30,1020,1020);
+  ctx.fillStyle = "#808080"; ctx.fillRect(36,36,1008,1008);
+  ctx.fillStyle = "#c0c0c0"; ctx.fillRect(40,40,1000,1000);
+
+  const grad = ctx.createLinearGradient(40,40,1040,40);
+  grad.addColorStop(0,"#00007f"); grad.addColorStop(0.5,"#0000cd"); grad.addColorStop(1,"#1084d0");
+  ctx.fillStyle = grad; ctx.fillRect(40,40,1000,130);
+
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 48px Arial, sans-serif";
+  ctx.fillText("THE PUBLIC JOURNAL", 64, 96);
+
+  const author = entry.anon ? "Anonymous" : entry.handle;
+  const date = new Date(entry.ts).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  ctx.fillStyle = "#aad4ff"; ctx.font = "30px Arial, sans-serif";
+  ctx.fillText(author + "  •  " + date, 64, 132);
+
+  const rb = ["#f00","#f80","#ff0","#0c0","#00f","#80c","#f00"];
+  const rw = 1000/rb.length;
+  rb.forEach((c,i)=>{ ctx.fillStyle=c; ctx.fillRect(40+i*rw,170,rw+2,14); });
+
+  const text = entry.blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n\n");
+  ctx.font = "52px Times New Roman, serif";
+  const mw = 880; const lh = 78;
+  let lines = [];
+  for (const para of text.split("\n\n")) {
+    const words = para.split(" "); let line = "";
+    for (let w of words) {
+      const t = line + w + " ";
+      if (ctx.measureText(t).width > mw && line) { lines.push(line.trim()); line = w + " "; }
+      else { line = t; }
+    }
+    if (line.trim()) lines.push(line.trim());
+    lines.push("");
+  }
+  while (lines[lines.length-1] === "") lines.pop();
+  if (lines.length > 8) { lines = lines.slice(0,7); lines.push("..."); }
+
+  const bodyTop = 195; const bodyBottom = 950;
+  const textBlockH = lines.length * lh;
+  const startY = bodyTop + (bodyBottom - bodyTop - textBlockH) / 2;
+
+  ctx.fillStyle = "#000080"; ctx.font = "bold 130px Times New Roman, serif";
+  ctx.fillText("“", 44, startY + 10);
+
+  ctx.fillStyle = "#000000"; ctx.font = "52px Times New Roman, serif";
+  let y = startY + 20;
+  for (const line of lines) {
+    if (line === "") { y += lh * 0.5; continue; }
+    ctx.fillText(line, 80, y); y += lh;
+  }
+
+  ctx.fillStyle = "#000080"; ctx.font = "bold 130px Times New Roman, serif";
+  ctx.textAlign = "right";
+  ctx.fillText("”", 1036, y + 50);
+  ctx.textAlign = "left";
+
+  rb.forEach((c,i)=>{ ctx.fillStyle=c; ctx.fillRect(40+i*rw,958,rw+2,14); });
+  ctx.fillStyle = "#000080"; ctx.fillRect(40,972,1000,68);
+  ctx.fillStyle = "#ffff00"; ctx.fillRect(40,969,1000,4);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 36px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("THEPUBLICJOURNAL.ONLINE", 540, 1016);
+  ctx.textAlign = "left";
+
+  return canvas.toDataURL("image/png");
+}
 function generateStoryCard(entry) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080; canvas.height = 1920;
@@ -325,6 +398,7 @@ function Card({ s, idx, onShare, onTagClick, onReply }) {
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();onReply(s);}}>↩ Reply</button>
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();onShare(s);}}>📤 Share</button>
         <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();const img=generateStoryCard(s);const a=document.createElement('a');a.href=img;a.download='tpj-story.png';a.click();}}>📸 Story</button>
+        <button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();const img=generateSquareCard(s);const a=document.createElement('a');a.href=img;a.download='tpj-post.png';a.click();}}>🖼️ Post</button>
         {hasMore&&(<button style={{ ...W.btnSm, minHeight:"36px" }} onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}>{open?"▲ Less":"▼ More"}</button>)}
         {(s.tags||[]).length>0&&(
           <div style={{ display:"flex", gap:"4px", flexWrap:"wrap", marginTop:"2px", width:"100%" }}>
