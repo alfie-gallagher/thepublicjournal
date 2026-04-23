@@ -133,30 +133,27 @@ function generateStoryCard(entry) {
   canvas.width = 1080; canvas.height = 1920;
   const ctx = canvas.getContext("2d");
 
-  // bg
+  // background
   ctx.fillStyle = "#c0c0c0"; ctx.fillRect(0,0,1080,1920);
 
-  // outer win95 border
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(40,40,1000,1840);
-  ctx.fillStyle = "#808080";
-  ctx.fillRect(48,48,992,1832);
-  ctx.fillStyle = "#c0c0c0";
-  ctx.fillRect(52,52,984,1824);
+  // win95 window border
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(40,40,1000,1840);
+  ctx.fillStyle = "#808080"; ctx.fillRect(48,48,992,1832);
+  ctx.fillStyle = "#c0c0c0"; ctx.fillRect(52,52,984,1824);
 
-  // title bar
+  // title bar gradient
   const grad = ctx.createLinearGradient(52,52,1036,52);
   grad.addColorStop(0,"#00007f"); grad.addColorStop(0.5,"#0000cd"); grad.addColorStop(1,"#1084d0");
   ctx.fillStyle = grad; ctx.fillRect(52,52,984,110);
 
-  // title bar text
+  // title bar - site name left
   ctx.fillStyle = "#ffffff"; ctx.font = "bold 52px Arial, sans-serif";
   ctx.fillText("THE PUBLIC JOURNAL", 80, 122);
 
-  // author + date right side
+  // title bar - author + date right
   const author = entry.anon ? "Anonymous" : entry.handle;
   const date = new Date(entry.ts).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
-  ctx.font = "36px Arial, sans-serif"; ctx.fillStyle = "#aad4ff";
+  ctx.font = "32px Arial, sans-serif"; ctx.fillStyle = "#aad4ff";
   ctx.textAlign = "right";
   ctx.fillText(author + "  •  " + date, 1020, 122);
   ctx.textAlign = "left";
@@ -164,18 +161,12 @@ function generateStoryCard(entry) {
   // rainbow bar top
   const rb = ["#f00","#f80","#ff0","#0c0","#00f","#80c","#f00"];
   const rw = 984/rb.length;
-  rb.forEach((c,i)=>{ctx.fillStyle=c; ctx.fillRect(52+i*rw,162,rw+2,18);});
+  rb.forEach((c,i)=>{ ctx.fillStyle=c; ctx.fillRect(52+i*rw,162,rw+2,18); });
 
-  // entry text - vertically centred in middle zone
+  // prepare text
   const text = entry.blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n\n");
-  const textAreaTop = 200;
-  const textAreaBottom = 1700;
-  const textAreaH = textAreaBottom - textAreaTop;
-
-  // first pass — measure how many lines
-  ctx.font = "60px 'Times New Roman', Times, serif";
-  const mw = 920;
-  const lh = 90;
+  ctx.font = "64px Times New Roman, serif";
+  const mw = 880; const lh = 96;
   let lines = [];
   for (const para of text.split("\n\n")) {
     const words = para.split(" "); let line = "";
@@ -187,37 +178,45 @@ function generateStoryCard(entry) {
     if (line.trim()) lines.push(line.trim());
     lines.push("");
   }
-  lines = lines.slice(0, Math.floor(textAreaH / lh));
-  const totalH = lines.length * lh;
-  let y = textAreaTop + (textAreaH - totalH) / 2 + lh;
+  while (lines[lines.length-1] === "") lines.pop();
+  if (lines.length > 14) { lines = lines.slice(0,13); lines.push("..."); }
 
-  // draw open quote
-  ctx.fillStyle = "#000080"; ctx.font = "bold 160px 'Times New Roman', Times, serif";
-  ctx.fillText("“", 60, y + 60);
+  // vertically centre the text block in the card body (180 to 1730)
+  const bodyTop = 200; const bodyBottom = 1720;
+  const textBlockH = lines.length * lh;
+  const quoteH = 140;
+  const totalBlock = quoteH + 20 + textBlockH + 60 + quoteH;
+  const startY = bodyTop + (bodyBottom - bodyTop - totalBlock) / 2;
 
-  ctx.fillStyle = "#000000"; ctx.font = "60px 'Times New Roman', Times, serif";
+  // open quote
+  ctx.fillStyle = "#000080"; ctx.font = "bold 180px Times New Roman, serif";
+  ctx.fillText("“", 70, startY + quoteH);
+
+  // text lines
+  ctx.fillStyle = "#000000"; ctx.font = "64px Times New Roman, serif";
+  let y = startY + quoteH + 20 + lh;
   for (const line of lines) {
-    if (line === "") { y += lh * 0.6; continue; }
+    if (line === "") { y += lh * 0.5; continue; }
     ctx.fillText(line, 100, y); y += lh;
   }
 
   // close quote
-  ctx.fillStyle = "#000080"; ctx.font = "bold 160px 'Times New Roman', Times, serif";
+  ctx.fillStyle = "#000080"; ctx.font = "bold 180px Times New Roman, serif";
   ctx.textAlign = "right";
-  ctx.fillText("”", 1020, y + 20);
+  ctx.fillText("”", 1010, y + 60);
   ctx.textAlign = "left";
 
   // rainbow bar bottom
-  rb.forEach((c,i)=>{ctx.fillStyle=c; ctx.fillRect(52+i*rw,1730,rw+2,18);});
+  rb.forEach((c,i)=>{ ctx.fillStyle=c; ctx.fillRect(52+i*rw,1730,rw+2,18); });
 
   // footer
-  ctx.fillStyle = "#000080"; ctx.fillRect(52,1748,984,124);
+  ctx.fillStyle = "#000080"; ctx.fillRect(52,1748,984,128);
   ctx.fillStyle = "#ffff00"; ctx.fillRect(52,1745,984,4);
   ctx.fillStyle = "#ffffff"; ctx.font = "bold 46px Arial, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("THEPUBLICJOURNAL.ONLINE", 540, 1816);
+  ctx.fillText("THEPUBLICJOURNAL.ONLINE", 540, 1818);
   ctx.fillStyle = "#aad4ff"; ctx.font = "30px Arial, sans-serif";
-  ctx.fillText("Leave your own story — free, anonymous, always", 540, 1858);
+  ctx.fillText("Leave your story at thepublicjournal.online", 540, 1858);
   ctx.textAlign = "left";
 
   return canvas.toDataURL("image/png");
