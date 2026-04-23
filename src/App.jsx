@@ -637,7 +637,7 @@ function BlockEditor({ blocks, setBlocks }) {
     </div>
   );
 }function DonatePopup() {
-  const [show, setShow] = React.useState(()=>!sessionStorage.getItem("donate_seen"));
+  const [show, setShow] = useState(()=>!sessionStorage.getItem("donate_seen"));
   if (!show) return null;
   const close = () => { sessionStorage.setItem("donate_seen","1"); setShow(false); };
   return (
