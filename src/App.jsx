@@ -132,31 +132,94 @@ function generateStoryCard(entry) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080; canvas.height = 1920;
   const ctx = canvas.getContext("2d");
+
+  // bg
   ctx.fillStyle = "#c0c0c0"; ctx.fillRect(0,0,1080,1920);
-  ctx.fillStyle = "#ffffff"; ctx.fillRect(60,60,960,1800);
-  ctx.fillStyle = "#c0c0c0"; ctx.fillRect(66,66,948,1788);
-  ctx.strokeStyle="#ffffff"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(60,60); ctx.lineTo(1020,60); ctx.lineTo(1020,1860); ctx.stroke();
-  ctx.strokeStyle="#808080"; ctx.beginPath(); ctx.moveTo(1020,60); ctx.lineTo(60,60); ctx.lineTo(60,1860); ctx.stroke();
-  const grad=ctx.createLinearGradient(66,66,1014,66); grad.addColorStop(0,"#00007f"); grad.addColorStop(0.5,"#0000cd"); grad.addColorStop(1,"#1084d0");
-  ctx.fillStyle=grad; ctx.fillRect(66,66,948,96);
-  ctx.fillStyle="#ffffff"; ctx.font="bold 40px Arial"; ctx.fillText("The Public Journal",90,128);
-  const rb=["#f00","#f80","#ff0","#0c0","#00f","#80c","#f00"]; const rw=948/rb.length;
-  rb.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(66+i*rw,162,rw+2,14);});
-  const text=entry.blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n\n");
-  ctx.fillStyle="#000"; ctx.font="46px Times New Roman,serif";
-  let y=260; const lh=76; const mw=880;
-  for(const para of text.split("\n\n")){
-    const words=para.split(" "); let line="";
-    for(let w of words){const t=line+w+" "; if(ctx.measureText(t).width>mw&&line){ctx.fillText(line.trim(),100,y);line=w+" ";y+=lh;if(y>1680){ctx.fillText("...",100,y);break;}}else{line=t;}}
-    if(y<=1680&&line.trim()){ctx.fillText(line.trim(),100,y);y+=lh*1.5;} if(y>1680)break;
+
+  // outer win95 border
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(40,40,1000,1840);
+  ctx.fillStyle = "#808080";
+  ctx.fillRect(48,48,992,1832);
+  ctx.fillStyle = "#c0c0c0";
+  ctx.fillRect(52,52,984,1824);
+
+  // title bar
+  const grad = ctx.createLinearGradient(52,52,1036,52);
+  grad.addColorStop(0,"#00007f"); grad.addColorStop(0.5,"#0000cd"); grad.addColorStop(1,"#1084d0");
+  ctx.fillStyle = grad; ctx.fillRect(52,52,984,110);
+
+  // title bar text
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 52px Arial, sans-serif";
+  ctx.fillText("THE PUBLIC JOURNAL", 80, 122);
+
+  // author + date right side
+  const author = entry.anon ? "Anonymous" : entry.handle;
+  const date = new Date(entry.ts).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  ctx.font = "36px Arial, sans-serif"; ctx.fillStyle = "#aad4ff";
+  ctx.textAlign = "right";
+  ctx.fillText(author + "  •  " + date, 1020, 122);
+  ctx.textAlign = "left";
+
+  // rainbow bar top
+  const rb = ["#f00","#f80","#ff0","#0c0","#00f","#80c","#f00"];
+  const rw = 984/rb.length;
+  rb.forEach((c,i)=>{ctx.fillStyle=c; ctx.fillRect(52+i*rw,162,rw+2,18);});
+
+  // entry text - vertically centred in middle zone
+  const text = entry.blocks.filter(b=>b.type==="text").map(b=>b.value).join("\n\n");
+  const textAreaTop = 200;
+  const textAreaBottom = 1700;
+  const textAreaH = textAreaBottom - textAreaTop;
+
+  // first pass — measure how many lines
+  ctx.font = "60px 'Times New Roman', Times, serif";
+  const mw = 920;
+  const lh = 90;
+  let lines = [];
+  for (const para of text.split("\n\n")) {
+    const words = para.split(" "); let line = "";
+    for (let w of words) {
+      const t = line + w + " ";
+      if (ctx.measureText(t).width > mw && line) { lines.push(line.trim()); line = w + " "; }
+      else { line = t; }
+    }
+    if (line.trim()) lines.push(line.trim());
+    lines.push("");
   }
-  rb.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(66+i*rw,1750,rw+2,14);});
-  ctx.fillStyle="#000080"; ctx.fillRect(66,1764,948,90);
-  ctx.fillStyle="#fff"; ctx.font="bold 34px Arial"; ctx.textAlign="center";
-  ctx.fillText("THEPUBLICJOURNAL.ONLINE",540,1820);
-  ctx.fillStyle="#aad4ff"; ctx.font="26px Arial";
-  ctx.fillText("Leave your story at thepublicjournal.online",540,1850);
-  ctx.textAlign="left";
+  lines = lines.slice(0, Math.floor(textAreaH / lh));
+  const totalH = lines.length * lh;
+  let y = textAreaTop + (textAreaH - totalH) / 2 + lh;
+
+  // draw open quote
+  ctx.fillStyle = "#000080"; ctx.font = "bold 160px 'Times New Roman', Times, serif";
+  ctx.fillText("“", 60, y + 60);
+
+  ctx.fillStyle = "#000000"; ctx.font = "60px 'Times New Roman', Times, serif";
+  for (const line of lines) {
+    if (line === "") { y += lh * 0.6; continue; }
+    ctx.fillText(line, 100, y); y += lh;
+  }
+
+  // close quote
+  ctx.fillStyle = "#000080"; ctx.font = "bold 160px 'Times New Roman', Times, serif";
+  ctx.textAlign = "right";
+  ctx.fillText("”", 1020, y + 20);
+  ctx.textAlign = "left";
+
+  // rainbow bar bottom
+  rb.forEach((c,i)=>{ctx.fillStyle=c; ctx.fillRect(52+i*rw,1730,rw+2,18);});
+
+  // footer
+  ctx.fillStyle = "#000080"; ctx.fillRect(52,1748,984,124);
+  ctx.fillStyle = "#ffff00"; ctx.fillRect(52,1745,984,4);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 46px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("THEPUBLICJOURNAL.ONLINE", 540, 1816);
+  ctx.fillStyle = "#aad4ff"; ctx.font = "30px Arial, sans-serif";
+  ctx.fillText("Leave your own story — free, anonymous, always", 540, 1858);
+  ctx.textAlign = "left";
+
   return canvas.toDataURL("image/png");
 }
 function Card({ s, idx, onShare, onTagClick, onReply }) {
