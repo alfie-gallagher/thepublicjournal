@@ -129,7 +129,7 @@ function ShareSheet({ entry, onClose }) {
   );
 }function Card({ s, idx, onShare, onTagClick, onReply }) {
   const [open, setOpen] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(()=>localStorage.getItem("liked_"+s.id)==="1");
   const [likes, setLikes] = useState(s.likes || 0);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
@@ -147,7 +147,7 @@ function ShareSheet({ entry, onClose }) {
   const handleLike = async (e) => {
     e.stopPropagation();
     if (liked) return;
-    setLiked(true); setLikes(n=>n+1);
+    setLiked(true); setLikes(n=>n+1); localStorage.setItem("liked_"+s.id,"1");
     await supabase.from("entries").update({ likes: likes+1 }).eq("id", s.id);
   };
 
