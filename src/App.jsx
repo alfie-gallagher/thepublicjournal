@@ -460,7 +460,7 @@ function BlockEditor({ blocks, setBlocks }) {
   const [activeTag, setActiveTag] = useState(null);
   const [shareEntry, setShareEntry] = useState(null);
   const [replyTo, setReplyTo]   = useState(null);
-  const [visitorCount, setVisitorCount] = useState(null);
+  
   const [themeCategory, setThemeCategory] = useState("Serious & Reflective");
   const [currentTheme, setCurrentTheme] = useState(()=>THEME_CATEGORIES["Serious & Reflective"][0]);
   const [gbName, setGbName]     = useState("");
@@ -511,16 +511,6 @@ function BlockEditor({ blocks, setBlocks }) {
       const { data } = await supabase.from("guestbook").select("*").order("ts",{ascending:false});
       if (data && data.length>0) { setGbEntries(data); }
       else { setGbEntries([]); }
-    })();
-  },[]);
-
-  useEffect(()=>{
-    (async()=>{
-      const { data } = await supabase.from("visitors").select("count").eq("id",1).single();
-      const current = data?.count || 38;
-      const next = current+1;
-      await supabase.from("visitors").update({count:next}).eq("id",1);
-      setVisitorCount(next);
     })();
   },[]);
 
