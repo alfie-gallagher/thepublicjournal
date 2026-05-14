@@ -571,8 +571,8 @@ function BlockEditor({ blocks, setBlocks }) {
             <div style={{ marginTop:"6px" }}><UCon/></div>
           </div>
           <div style={{ textAlign:"right" }}>
-            <div style={{ fontFamily:"Arial,sans-serif", fontSize:"10px", color:"#aad4ff", marginBottom:"4px" }}>visitor no.</div>
-            {visitorCount!==null&&<Counter n={visitorCount}/>}
+            <div style={{ fontFamily:"Arial,sans-serif", fontSize:"10px", color:"#aad4ff", marginBottom:"4px" }}></div>
+            
             <div style={{ fontFamily:"Arial,sans-serif", fontSize:"10px", color:"#aad4ff", marginTop:"4px" }}>{entries.length} entries</div>
           </div>
         </div>
