@@ -460,6 +460,7 @@ function BlockEditor({ blocks, setBlocks }) {
   const [activeTag, setActiveTag] = useState(null);
   const [shareEntry, setShareEntry] = useState(null);
   const [replyTo, setReplyTo]   = useState(null);
+  const [visitorCount, setVisitorCount] = useState(null);
   
   const [themeCategory, setThemeCategory] = useState("Serious & Reflective");
   const [currentTheme, setCurrentTheme] = useState(()=>THEME_CATEGORIES["Serious & Reflective"][0]);
